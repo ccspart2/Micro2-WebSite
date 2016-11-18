@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>WALL-E CAM </title>
+    <!-- Bootstrap -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/bootstrap-slider.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/css/Carousel.css" />
+    <link rel="stylesheet" href="static/css/footer.css" />
+    <link rel="stylesheet" href="static/css/bootstrap-toggle.min.css" />
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+      <![endif]-->
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div class="row row-fluid">
+            <div class="col-md-12 col-xs-12">
+                <img src="static/media/WALLE_logo.jpeg" class="img-responsive">
+            </div>
+        </div>
+
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-8 col-fluid">
+                <div class="embed-responsive embed-responsive-4by3">
+                    <object classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921" codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab" width="800" height="600" id="vlc" events="True">
+                        <param name="Src" value="http://10.31.12.63:8080/" />
+                        <param name="ShowDisplay" value="True" />
+                        <param name="AutoLoop" value="False" />
+                        <param name="AutoPlay" value="True" />
+                        <embed id="vlcEmb" type="application/x-google-vlc-plugin" version="VideoLAN.VLCPlugin.2" autoplay="yes" loop="no" width="640" height="480" target="http://10.31.12.63:8080/" />
+                    </object>
+                </div>
+            </div>
+            <div class="col-xs-4 text-center">
+                <H1><small>Control Panel for WALL-E</small></H1>
+            </div>
+            <div class="col-xs-4 text-center">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" value="" name="checkRemote" onclick="checkRemote(this)">Allow Remote Control</label>
+                </div>
+            </div>
+            <div class="col-xs-4 text-center">
+                <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-90" data-slider-max="90" data-slider-step="1" data-slider-value="0" />
+                <p>Pan</p>
+            </div>
+            <div class="col-xs-4 text-center">
+                <input id="ex2" data-slider-id='ex1Slider' type="text" data-slider-min="-90" data-slider-max="90" data-slider-step="1" data-slider-value="0" />
+                <p>Tilt</p>
+            </div>
+            <div class="col-xs-4 text-center">
+                <button type="button" class="btn btn-primary" onclick="Button_onclick('positionButton')">Update WALL-E Position</button>
+            </div>
+            <div class="col-xs-4 text-center">
+                <p> </p>
+            </div>
+            <div class="col-xs-4 text-center">
+                <H1><small>Stream Functionality</small></H1>
+            </div>
+            <div class="col-xs-4 text-center">
+                <button type="button" class="btn btn-primary" onclick="Button_onclick('screenshotButton')">
+                    <span class="glyphicon glyphicon-camera"></span> Take Screenshot
+                </button>
+            </div>
+            <div class="col-xs-4 text-center">
+                <h1>         </h1>
+            </div>
+            <div class="col-xs-4 text-center">
+                <label class="checkbox-inline">
+                    <input type="checkbox" checked data-toggle="toggle"> Turn ON/OFF the Stream
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                <h1>Album</h1>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <div id="main_area">
+            <!-- Slider -->
+            <div class="row">
+                <div class="col-sm-6" id="slider-thumbs">
+                    <!-- Bottom switcher of slider -->
+                    <ul class="hide-bullets">
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-0">
+                                <img src="http://placehold.it/150x150&text=zero">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-1"><img src="http://placehold.it/150x150&text=1">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-2"><img src="http://placehold.it/150x150&text=2">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-3"><img src="http://placehold.it/150x150&text=3">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-4"><img src="http://placehold.it/150x150&text=4">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-5"><img src="http://placehold.it/150x150&text=5">
+                            </a>
+                        </li>
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-6"><img src="http://placehold.it/150x150&text=6">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-7"><img src="http://placehold.it/150x150&text=7">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-8"><img src="http://placehold.it/150x150&text=8">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-9"><img src="http://placehold.it/150x150&text=9">
+                            </a>
+                        </li>
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-10"><img src="http://placehold.it/150x150&text=10">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-11"><img src="http://placehold.it/150x150&text=11">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-12"><img src="http://placehold.it/150x150&text=12">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-13"><img src="http://placehold.it/150x150&text=13">
+                            </a>
+                        </li>
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-14"><img src="http://placehold.it/150x150&text=14">
+                            </a>
+                        </li>
+
+                        <li class="col-sm-3">
+                            <a class="thumbnail" id="carousel-selector-15"><img src="http://placehold.it/150x150&text=15">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-sm-6">
+                    <div class="col-xs-12" id="slider">
+                        <!-- Top part of the slider -->
+                        <div class="row">
+                            <div class="col-sm-12" id="carousel-bounding-box">
+                                <div class="carousel slide" id="myCarousel">
+                                    <!-- Carousel items -->
+                                    <div class="carousel-inner">
+                                        <div class="active item" data-slide-number="0">
+                                            <img src="http://placehold.it/470x480&text=zero">
+                                        </div>
+
+                                        <div class="item" data-slide-number="1">
+                                            <img src="http://placehold.it/470x480&text=1">
+                                        </div>
+
+                                        <div class="item" data-slide-number="2">
+                                            <img src="http://placehold.it/470x480&text=2">
+                                        </div>
+
+                                        <div class="item" data-slide-number="3">
+                                            <img src="http://placehold.it/470x480&text=3">
+                                        </div>
+
+                                        <div class="item" data-slide-number="4">
+                                            <img src="http://placehold.it/470x480&text=4">
+                                        </div>
+
+                                        <div class="item" data-slide-number="5">
+                                            <img src="http://placehold.it/470x480&text=5">
+                                        </div>
+
+                                        <div class="item" data-slide-number="6">
+                                            <img src="http://placehold.it/470x480&text=6">
+                                        </div>
+
+                                        <div class="item" data-slide-number="7">
+                                            <img src="http://placehold.it/470x480&text=7">
+                                        </div>
+
+                                        <div class="item" data-slide-number="8">
+                                            <img src="http://placehold.it/470x480&text=8">
+                                        </div>
+
+                                        <div class="item" data-slide-number="9">
+                                            <img src="http://placehold.it/470x480&text=9">
+                                        </div>
+
+                                        <div class="item" data-slide-number="10">
+                                            <img src="http://placehold.it/470x480&text=10">
+                                        </div>
+
+                                        <div class="item" data-slide-number="11">
+                                            <img src="http://placehold.it/470x480&text=11">
+                                        </div>
+
+                                        <div class="item" data-slide-number="12">
+                                            <img src="http://placehold.it/470x480&text=12">
+                                        </div>
+
+                                        <div class="item" data-slide-number="13">
+                                            <img src="http://placehold.it/470x480&text=13">
+                                        </div>
+
+                                        <div class="item" data-slide-number="14">
+                                            <img src="http://placehold.it/470x480&text=14">
+                                        </div>
+
+                                        <div class="item" data-slide-number="15">
+                                            <img src="http://placehold.it/470x480&text=15">
+                                        </div>
+                                    </div>
+                                    <!-- Carousel nav -->
+                                    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+                                        <span class="glyphicon glyphicon-chevron-left"></span>
+                                    </a>
+                                    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+                                        <span class="glyphicon glyphicon-chevron-right"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--/Slider-->
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container text-center">
+        <p class="text-muted"> ICOM 4217 Final Project - Jose Abreu | Jean Rodriguez | Jose Martinez | Charlie Castro </p> 
+        <p>Supervised by Class Coordinator : Carlos Bernal</p>
+      </div>
+    </footer>
+
+
+
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="static/js/jquery-3.1.1.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="static/js/bootstrap.min.js"></script>
+    <!-- Include the Sliders for the Web Page -->
+    <script src="static/js/bootstrap-slider.min.js"></script>
+    <!-- Include the toogle for the Web Page -->
+    <script src="static/js/bootstrap-toggle.min.js"></script>
+    <!-- Include the Carousel for the Web Page -->
+    <script src="static/js/Carousel.js"></script>
+
+    <script>
+        var panAngle;
+        var tiltAngle;
+
+        $('#ex1').slider({
+            formatter: function(value) {
+                panAngle = value.toString();
+                return 'Current value: ' + value;
+            }
+        });
+
+
+
+        $('#ex2').slider({
+            formatter: function(value) {
+
+                tiltAngle = value.toString();
+                return 'Current value: ' + value;
+            }
+        });
+
+        function Button_onclick(msg) {
+
+            $.ajax({
+                url: '/' + msg
+            });
+            $.ajax({
+                url: '/' + panAngle
+            });
+            $.ajax({
+                url: '/' + tiltAngle
+            });
+
+        }
+
+        function checkRemote(checkbox) {
+            if (checkbox.checked) {
+                $.ajax({
+                    url: '/' + 'checkeao'
+                });
+
+            }
+        }
+    </script>
+</body>
+
+</html>
