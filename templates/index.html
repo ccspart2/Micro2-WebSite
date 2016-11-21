@@ -46,12 +46,6 @@
                 <H1><small>Control Panel for WALL-E</small></H1>
             </div>
             <div class="col-xs-4 text-center">
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" value="" name="checkRemote" onclick="checkRemote(this)">Allow Remote Control</label>
-                </div>
-            </div>
-            <div class="col-xs-4 text-center">
                 <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-90" data-slider-max="90" data-slider-step="1" data-slider-value="0" />
                 <p>Pan</p>
             </div>
@@ -62,11 +56,34 @@
             <div class="col-xs-4 text-center">
                 <button type="button" class="btn btn-primary" onclick="Button_onclick('positionButton')">Update WALL-E Position</button>
             </div>
+
             <div class="col-xs-4 text-center">
                 <p> </p>
             </div>
             <div class="col-xs-4 text-center">
                 <H1><small>Stream Functionality</small></H1>
+            </div>
+            <div class="col-xs-4 text-center">
+                <h1>         </h1>
+            </div>
+            <div class="col-xs-4 text-center">
+                <label class="checkbox-inline">
+                    <input id="toggleStream"type="checkbox" checked data-toggle="toggle"> Turn ON/OFF the Stream
+                </label>
+            </div>
+            <div class="col-xs-4 text-center">
+                <p> </p>
+            </div>
+            <div class="col-xs-4 text-center">
+                <h1>         </h1>
+            </div>
+            <div class="col-xs-4 text-center">
+                <button type="button" class="btn btn-primary" onClick="history.go(0)" VALUE="Refresh">
+                    <span class="glyphicon glyphicon-refresh"></span> Refresh this Page
+                </button>
+            </div>
+            <div class="col-xs-4 text-center">
+                <H1><small>Photos & Videos</small></H1>
             </div>
             <div class="col-xs-4 text-center">
                 <button type="button" class="btn btn-primary" onclick="Button_onclick('screenshotButton')">
@@ -77,10 +94,12 @@
                 <h1>         </h1>
             </div>
             <div class="col-xs-4 text-center">
-                <label class="checkbox-inline">
-                    <input id="toggleStream"type="checkbox" checked data-toggle="toggle"> Turn ON/OFF the Stream
-                </label>
+                <button type="button" class="btn btn-primary" onclick="window.location='http://www.google.com'">
+                    <span class="glyphicon glyphicon-facetime-video"></span> Download Recent Streams
+                </button>
             </div>
+
+            
         </div>
     </div>
 
@@ -318,6 +337,18 @@
 	
 	var imageCounter = 0;
 	var EmptyThumbs = 16;
+
+    if(EmptyThumbs > 0)
+            {
+                while(EmptyThumbs != 0 )
+                {
+                    $('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
+                    $('#slider'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
+                    imageCounter++;
+                    EmptyThumbs--;
+                }
+            }
+
 	$.ajax({
 		url: "/get_images",
 		success: function(data){
