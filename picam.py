@@ -1,8 +1,18 @@
+#!/usr/bin/python
+
 from flask import Flask, render_template
 import os, psutil, time, datetime, json
+import RPi.GPIO as GPIO
+import time
+import math
+from RPIO import PWM
+import math
+
 
 
 app = Flask(__name__)
+
+
 
 
 @app.route('/')
@@ -13,7 +23,10 @@ def index():
 @app.route("/<command>")
 def getCommand(command):
 	
+	words = command.split(' ',2)
+    
 	
+    
 	print(command)
 	currentStream = False
 	
@@ -24,6 +37,13 @@ def getCommand(command):
 	if command == "startStream":
 		if not currentStream:
 			os.system('su - pi -c "./newStream.sh &"')
+	elif words[0] == 'positionButton':
+		print(words[1])
+		print(words[2])
+		pan = ((int(words[1]) + 90)/180)*100
+		tilt = 	((int(words[2]) + 90)/180)*100
+		os.system("echo 3="+str(pan)+"% > /dev/servoblaster")
+		os.system("echo 1="+str(tilt)+"% > /dev/servoblaster")
 	elif command == "stopStream":
 		print("pare")
 		os.system('sudo pkill -9 vlc ')
@@ -48,6 +68,7 @@ def sendImages():
 	return json.dumps(names)
 	
 	
+
 	
 
 
