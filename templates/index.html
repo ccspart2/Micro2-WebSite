@@ -317,6 +317,7 @@
 			}
 	
 	var imageCounter = 0;
+	var EmptyThumbs = 16;
 	$.ajax({
 		url: "/get_images",
 		success: function(data){
@@ -326,9 +327,20 @@
 					$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
 					$('#slider'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
 					imageCounter++;
+					EmptyThumbs--;
 				}
 				if (imageCounter >= 16) {
 					break;
+				}
+			}
+			if(EmptyThumbs > 0)
+			{
+				while(EmptyThumbs != 0 )
+				{
+					$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
+					$('#slider'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
+					imageCounter++;
+					EmptyThumbs--;
 				}
 			}
 		}
