@@ -34,61 +34,42 @@
               <div class="col-xs-8">
                   <H1><small>Click the links to download previous streams:</small></H1>
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 1</button>
-                </a>
+              <div id="videoCanvas-1" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 2</button>
-                </a>
+              
+              <div id="videoCanvas-2" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 3</button>
-                </a>
+              
+              <div id="videoCanvas-3" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 4</button>
-                </a>
+              
+              <div id="videoCanvas-4" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 5</button>
-                </a>
+              <div id="videoCanvas-5" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 6</button>
-                </a>
+              
+              <div id="videoCanvas-6" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 7</button>
-                </a>
+              
+              <div id="videoCanvas-7" class="col-xs-2 text-center btn-sm">
+              
               </div>
-              <div class="col-xs-2 text-center btn-sm">
-                <a href="/static/videos/20161121002013.h264" download>
-                  <button type="button" class="btn btn-primary">Download Video 8</button>
-                </a>
+              
+              <div id="videoCanvas-8" class="col-xs-2 text-center btn-sm">
+              
               </div>
+              
+              
+              
+              
           </div>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -102,6 +83,38 @@
     <script src="static/js/bootstrap-toggle.min.js"></script>
     <!-- Include the Carousel for the Web Page -->
     <script src="static/js/Carousel.js"></script>
+    
+    
+    <script>
+		
+	var videoCounter = 1;
+
+	
+		
+	$.ajax({
+		url: "/get_videos",
+		success: function(data){
+			data = JSON.parse(data);
+			for (var i in data) {
+				if (data[i].indexOf('.h264') !== -1) { 
+					$('#videoCanvas-'+videoCounter.toString()).append('<a href ="static/videos/'+ data[i] + '" download"> <button type="button" class="btn btn-primary">'+'Download Video '+videoCounter.toString() + '</button>  </a> ' );
+					
+					videoCounter++;
+				}
+				if (videoCounter >= 9) {
+					break;
+				}
+			}
+		}
+	});
+	
+	
+	
+	
+	
+	
+	</script>
+    
 
   </body>
 </html>
