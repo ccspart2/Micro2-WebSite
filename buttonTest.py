@@ -11,12 +11,12 @@ import netifaces as ni
 
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(20, GPIO.IN)
+GPIO.setup(21, GPIO.IN)
 
 def take_pic(arg):
 	print("Hola")
 	
-GPIO.add_event_detect(20, GPIO.FALLING, callback=take_pic, bouncetime=200)
+GPIO.add_event_detect(21, GPIO.FALLING, callback=take_pic, bouncetime=200)
 
 while True:
 	pass

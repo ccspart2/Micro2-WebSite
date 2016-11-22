@@ -55,8 +55,8 @@ ip = ni.ifaddresses('wlan0')[2][0]['addr']
 # Define GPIO to LCD mapping
 LCD_RS = 2
 LCD_E  = 4
-LCD_D4 = 24 
-LCD_D5 = 25
+LCD_D4 = 12 
+LCD_D5 = 16
 LCD_D6 = 8
 LCD_D7 = 7
 
@@ -174,12 +174,13 @@ app = Flask(__name__)
 
 def start_stop_stream(channel):
 	
+	
 	getCommand("toggleButton")
-	print(streamingButtonStatus)
+	print("EL STREAM ESTA EN ESTO ")
 	
 def take_pic(channel):
 	getCommand("screenshotButton")
-	print(pictureButtonStatus)
+	print("TOMA LA FOTO!!!")
 
 def move_cam(channel):
 	global anglePan
@@ -200,8 +201,8 @@ def move_cam(channel):
 	# 	move_cam(channel)
 
 
-GPIO.add_event_detect(20, GPIO.RISING, callback=take_pic, bouncetime=5000)
-GPIO.add_event_detect(21, GPIO.RISING, callback=start_stop_stream, bouncetime=5000)
+GPIO.add_event_detect(20, GPIO.FALLING, callback=take_pic, bouncetime=200)
+GPIO.add_event_detect(21, GPIO.FALLING, callback=start_stop_stream, bouncetime=200)
 
 GPIO.add_event_detect(5, GPIO.RISING, callback=move_cam, bouncetime=100)
 GPIO.add_event_detect(6, GPIO.RISING, callback=move_cam, bouncetime=100)
@@ -309,7 +310,9 @@ def rover_controls():
 if __name__ == '__main__':
 	
 	try:
-		print("Your IP to enter in browser is: ")
+		lcd_string("IP:"+ip, LCD_LINE_1)
+		lcd_string("Port :5000", LCD_LINE_2)   
+		print("Your Ip is: ")
 		print(ip+":5000")
 		app.run(debug=True, host='0.0.0.0')
 	except KeyboardInterrupt:
