@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from flask import Flask, render_template
 import os, psutil, time, datetime, json
@@ -19,9 +19,9 @@ streamingButtonStatus = ""
 pictureButtonStatus =""
 
 #################################################################
-#																#
-#               JOYSTICK + BUTTONS								#
-#																#
+#								#
+#               JOYSTICK + BUTTONS				#
+#								#
 #################################################################
 
 #Stream Button
@@ -38,18 +38,18 @@ GPIO.setup(13, GPIO.IN)
 GPIO.setup(19, GPIO.IN)
 
 #################################################################
-#																#
-#               NETWORK DEFINITIONS								#
-#																#
+#								#
+#               NETWORK DEFINITIONS				#
+#								#
 #################################################################
 
 ip = ni.ifaddresses('wlan0')[2][0]['addr']
 
 
 #################################################################
-#																#
-#               LCD												#
-#																#
+#								#
+#               LCD						#
+#								#
 #################################################################
 
 # Define GPIO to LCD mapping
@@ -163,18 +163,15 @@ lcd_init()
 
 
 #################################################################
-#																#
-#               FLASK APPLICATION								#
-#																#
+#								#
+#               FLASK APPLICATION				#
+#								#
 #################################################################
 
 app = Flask(__name__)
 
 
-
 def start_stop_stream(channel):
-	
-	
 	getCommand("toggleButton")
 	print("EL STREAM ESTA EN ESTO ")
 	
@@ -186,7 +183,7 @@ def move_cam(channel):
 	global anglePan
 	global angleTilt
 	
-	#print("MOVED JOYSTICK IN PIN " + str(channel))
+	print("MOVED JOYSTICK IN PIN " + str(channel))
 	if channel is 13 and anglePan <= (90-servoStepSize):
 		anglePan = anglePan + servoStepSize
 	elif channel is 19 and anglePan >= (-90+servoStepSize):
@@ -204,12 +201,10 @@ def move_cam(channel):
 GPIO.add_event_detect(20, GPIO.FALLING, callback=take_pic, bouncetime=200)
 GPIO.add_event_detect(21, GPIO.FALLING, callback=start_stop_stream, bouncetime=200)
 
-GPIO.add_event_detect(5, GPIO.RISING, callback=move_cam, bouncetime=100)
-GPIO.add_event_detect(6, GPIO.RISING, callback=move_cam, bouncetime=100)
-GPIO.add_event_detect(13, GPIO.RISING, callback=move_cam, bouncetime=100)
-GPIO.add_event_detect(19, GPIO.RISING, callback=move_cam, bouncetime=100)
-
-os.system("sudo ./ServoBlaster/PiBits/ServoBlaster/user/servod")
+GPIO.add_event_detect(5, GPIO.FALLING, callback=move_cam, bouncetime=200)
+GPIO.add_event_detect(6, GPIO.FALLING, callback=move_cam, bouncetime=200)
+GPIO.add_event_detect(13, GPIO.FALLING, callback=move_cam, bouncetime=200)
+GPIO.add_event_detect(19, GPIO.FALLING, callback=move_cam, bouncetime=200)
 
 
 @app.route('/')
@@ -223,10 +218,6 @@ def videos():
 	return render_template('videos.html')
 	
 	
-
-	
-	
-
 
 @app.route("/<command>")
 def getCommand(command):
@@ -283,13 +274,13 @@ def getCommand(command):
 		picname = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 		print("Picture Taken, picture name :" + str(picname))
 		os.system('raspistill  -n -h 470 -w 470 -o ./static/media/' + str(picname) + '.jpg')
-		if currentStream :
+		if currentStream:
 			os.system('su - pi -c "./newStream.sh >/dev/null 2>&1 &"')
 	return "success!"
 
 @app.route("/get_images")
 def sendImages():
-	print("Hay que llevar el mensaje")
+	print("Hay que llevar el mensaje (send images)")
 	names = os.listdir(os.path.join(app.static_folder,'media'))
 	print (names)
 	return json.dumps(names)
@@ -303,20 +294,20 @@ def sendVideos():
 	return json.dumps(names)
 	
 	
-	
 def rover_controls():
 	pass
 
 if __name__ == '__main__':
-	
 	try:
 		lcd_string("IP:"+ip, LCD_LINE_1)
 		lcd_string("Port :5000", LCD_LINE_2)   
 		print("Your Ip is: ")
 		print(ip+":5000")
-		app.run(debug=True, host='0.0.0.0')
+		app.run(debug=True, use_reloader=False, host='0.0.0.0')
+		
 	except KeyboardInterrupt:
 		pass
+		
 	finally:
 		os.system('sudo pkill -9 vlc ')
 		os.system('sudo pkill -9 raspivid ')
