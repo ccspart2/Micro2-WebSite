@@ -4,6 +4,7 @@ from flask import Flask, render_template
 import os, psutil, time, datetime, json
 import RPi.GPIO as GPIO
 import time
+from threading import Timer
 import math
 from RPIO import PWM
 import math
@@ -13,15 +14,17 @@ import netifaces as ni
 
 anglePan = 0
 angleTilt = 0
-servoStepSize = 15
+servoStepSize = 18
 
 streamingButtonStatus = ""
 pictureButtonStatus =""
 
+ShowIp = True
+
 #################################################################
-#								#
-#               JOYSTICK + BUTTONS				#
-#								#
+#                                                               #
+#               JOYSTICK + BUTTONS                              #
+#                                                               #
 #################################################################
 
 #Stream Button
@@ -38,18 +41,18 @@ GPIO.setup(13, GPIO.IN)
 GPIO.setup(19, GPIO.IN)
 
 #################################################################
-#								#
-#               NETWORK DEFINITIONS				#
-#								#
+#                                                               #
+#               NETWORK DEFINITIONS                             #
+#                                                               #
 #################################################################
 
 ip = ni.ifaddresses('wlan0')[2][0]['addr']
 
 
 #################################################################
-#								#
-#               LCD						#
-#								#
+#                                                               #
+#               LCD                                             #
+#                                                               #
 #################################################################
 
 # Define GPIO to LCD mapping
@@ -157,54 +160,65 @@ def lcd_string(message,line):
 lcd_init()
 
 
-    
-#lcd_string("   INIT   ", LCD_LINE_1)
-#lcd_string(ip, LCD_LINE_2)    
-
 
 #################################################################
-#								#
-#               FLASK APPLICATION				#
-#								#
+#                                                               #
+#               FLASK APPLICATION                               #
+#                                                               #
 #################################################################
 
 app = Flask(__name__)
 
 
 def start_stop_stream(channel):
-	getCommand("toggleButton")
-	print("EL STREAM ESTA EN ESTO ")
+	getCommand("toggleStreamButton")
 	
 def take_pic(channel):
-	getCommand("screenshotButton")
-	print("TOMA LA FOTO!!!")
+	getCommand("takePictureButton")
 
 def move_cam(channel):
 	global anglePan
 	global angleTilt
 	
-	print("MOVED JOYSTICK IN PIN " + str(channel))
+	# print("MOVED JOYSTICK IN PIN " + str(channel))
 	if channel is 13 and anglePan <= (90-servoStepSize):
 		anglePan = anglePan + servoStepSize
+		getCommand("move_cam pan " + str(anglePan))
 	elif channel is 19 and anglePan >= (-90+servoStepSize):
 		anglePan = anglePan - servoStepSize
+		getCommand("move_cam pan " + str(anglePan))
 	elif channel is 5 and angleTilt <= (90-servoStepSize):
 		angleTilt = angleTilt + servoStepSize
+		getCommand("move_cam tilt " + str(angleTilt))
 	elif channel is 6 and angleTilt >= (-90+servoStepSize):
 		angleTilt = angleTilt - servoStepSize
+		getCommand("move_cam tilt " + str(angleTilt))
 
-	getCommand("positionButton " + str(anglePan) + " " + str(angleTilt))
+	#getCommand("positionButton " + str(anglePan) + " " + str(angleTilt))
 	# if GPIO.input(channel) == GPIO.HIGH:
 	# 	move_cam(channel)
 
+def PictureTakenTimerCB():
+	print("Entered timer cb")
+	for proc in psutil.process_iter():
+		if proc.name() == "raspivid" or proc.name() == "vlc":
+			lcd_string("Status:", LCD_LINE_1)
+			lcd_string("Streaming", LCD_LINE_2)
+			return
+	
+	lcd_string("Status:", LCD_LINE_1)
+	lcd_string("IDLE", LCD_LINE_2) 
+	return
 
-GPIO.add_event_detect(20, GPIO.FALLING, callback=take_pic, bouncetime=200)
-GPIO.add_event_detect(21, GPIO.FALLING, callback=start_stop_stream, bouncetime=200)
 
-GPIO.add_event_detect(5, GPIO.FALLING, callback=move_cam, bouncetime=200)
-GPIO.add_event_detect(6, GPIO.FALLING, callback=move_cam, bouncetime=200)
-GPIO.add_event_detect(13, GPIO.FALLING, callback=move_cam, bouncetime=200)
-GPIO.add_event_detect(19, GPIO.FALLING, callback=move_cam, bouncetime=200)
+
+GPIO.add_event_detect(20, GPIO.FALLING, callback=take_pic, bouncetime=1000)
+GPIO.add_event_detect(21, GPIO.FALLING, callback=start_stop_stream, bouncetime=1000)
+
+GPIO.add_event_detect(5, GPIO.FALLING, callback=move_cam, bouncetime=400)
+GPIO.add_event_detect(6, GPIO.FALLING, callback=move_cam, bouncetime=400)
+GPIO.add_event_detect(13, GPIO.FALLING, callback=move_cam, bouncetime=400)
+GPIO.add_event_detect(19, GPIO.FALLING, callback=move_cam, bouncetime=400)
 
 
 @app.route('/')
@@ -221,18 +235,26 @@ def videos():
 
 @app.route("/<command>")
 def getCommand(command):
-	words = command.split(' ',2)
-    
-	print(command)
+	
+	global ShowIp
 	currentStream = False
-	#print("Im in getcommand")
-		
+	
+	if ShowIp:
+		ShowIp = False
+		lcd_string("Status:", LCD_LINE_1)
+		lcd_string("IDLE", LCD_LINE_2)   
+		return "Stopped showing IP on LCD"
+	
+	print(command)
+
+	words = command.split(' ',2)
+	
 	for proc in psutil.process_iter():
 		if proc.name() == "raspivid" or proc.name() == "vlc":
 			currentStream = True
 			
 			
-	if command == "toggleButton":
+	if command == "toggleStreamButton":
 		if currentStream == True:
 			command = "stopStream"
 		else:
@@ -243,45 +265,65 @@ def getCommand(command):
 		if not currentStream:
 			print("starting stream ...")
 			streamingButtonStatus = "Stream button on stream"
-			#os.system('su - pi -c "./newStream.sh &"')
 			ts = time.time()
 			vidname = str(datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S'))
-			command = 'su - pi -c "raspivid -o - -n -t 9999999  -w 800 -h 600 --hflip | tee /home/pi/Desktop/Production/Micro2-WebSite/static/videos/' + vidname + '.h264 | cvlc -vvv stream:///dev/stdin --sout \'#standard{access=http,mux=ts,dst=:8080}\' :demux=h264 &"'
+			command = 'su - pi -c "raspivid -o - -n -t 9999999  -w 800 -h 600 | tee /home/pi/Desktop/Production/Micro2-WebSite/static/videos/' + vidname + '.h264 | cvlc -vvv stream:///dev/stdin --sout \'#standard{access=http,mux=ts,dst=:8080}\' :demux=h264 &"'
 			os.system(command)
+			lcd_string("Status:", LCD_LINE_1)
+			lcd_string("Streaming", LCD_LINE_2)   
+
 			
-	elif words[0] == 'positionButton':
-		print(words[1])
+	elif words[0] == 'move_cam':
 		print(words[2])
-		anglePan = int(words[1])
-		angleTilt = int(words[2])
-		pan = ((anglePan + 90)/180)*100
-		tilt = ((angleTilt + 90)/180)*100
-		os.system("echo 3="+str(pan)+"% > /dev/servoblaster")
-		os.system("echo 1="+str(tilt)+"% > /dev/servoblaster")
+		angle = int(words[2])
+		angle = int(((angle + 90)/180)*100)
+		print(words[1] + " " + words[2])
+		if words[1] == "pan":
+			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=230 >/dev/null 2>&1") #>/dev/null 2>&1
+			os.system("echo 3="+str(angle)+"% > /dev/servoblaster")
+		elif words[1] == "tilt":
+			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=53 --max=225 >/dev/null 2>&1")
+			os.system("echo 1="+str(angle)+"% > /dev/servoblaster")
 		
 	elif command == "stopStream":
 		print("stoping stream....")
 		streamingButtonStatus = "Stream button off stream"
 		os.system('sudo pkill -9 vlc ')
 		os.system('sudo pkill -9 raspivid ')
+		lcd_string("Status:", LCD_LINE_1)
+		lcd_string("IDLE", LCD_LINE_2)   
+
 		
-	elif command == "screenshotButton":
+	elif command == "takePictureButton":
 		print("Taking picture...")
+		lcd_string("Taking new", LCD_LINE_1)
+		lcd_string("picture...", LCD_LINE_2)   
+
 		pictureButtonStatus ="Camera Button on"
 		os.system('sudo pkill -9 vlc ')
 		os.system('sudo pkill -9 raspivid ')	
 		ts = time.time()
 		picname = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
-		print("Picture Taken, picture name :" + str(picname))
 		os.system('raspistill  -n -h 470 -w 470 -o ./static/media/' + str(picname) + '.jpg')
 		if currentStream:
-			os.system('su - pi -c "./newStream.sh >/dev/null 2>&1 &"')
+			#os.system('su - pi -c "./newStream.sh >/dev/null 2>&1 &"')
+			command = 'su - pi -c "raspivid -o - -n -t 9999999  -w 800 -h 600 | tee /home/pi/Desktop/Production/Micro2-WebSite/static/videos/' + picname + '.h264 | cvlc -vvv stream:///dev/stdin --sout \'#standard{access=http,mux=ts,dst=:8080}\' :demux=h264 &"'
+			os.system(command)
+		
+		print("Picture Taken, picture name :" + str(picname))
+		lcd_string("New Picture: ", LCD_LINE_1)
+		lcd_string(str(picname) + ".jpg", LCD_LINE_2)   
+
+		timer = Timer(5, PictureTakenTimerCB)
+		timer.start()
+			
 	return "success!"
 
 @app.route("/get_images")
 def sendImages():
 	print("Hay que llevar el mensaje (send images)")
 	names = os.listdir(os.path.join(app.static_folder,'media'))
+	names.sort(reverse=True)
 	print (names)
 	return json.dumps(names)
 	
@@ -290,6 +332,7 @@ def sendImages():
 def sendVideos():
 	print("Los videos son el mensaje")
 	names = os.listdir(os.path.join(app.static_folder,'videos'))
+	names.sort(reverse=True)
 	print (names)
 	return json.dumps(names)
 	
@@ -303,6 +346,13 @@ if __name__ == '__main__':
 		lcd_string("Port :5000", LCD_LINE_2)   
 		print("Your Ip is: ")
 		print(ip+":5000")
+		
+		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=230 >/dev/null 2>&1") #>/dev/null 2>&1
+		os.system("echo 3=50% > /dev/servoblaster")
+		time.sleep(2)
+		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=53 --max=225 >/dev/null 2>&1")
+		os.system("echo 1=50% > /dev/servoblaster")
+
 		app.run(debug=True, use_reloader=False, host='0.0.0.0')
 		
 	except KeyboardInterrupt:

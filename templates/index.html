@@ -78,7 +78,7 @@
                 <h1>         </h1>
             </div>
             <div class="col-xs-4 text-center">
-                <button type="button" class="btn btn-primary" onClick="history.go(0)" VALUE="Refresh">
+                <button type="button" class="btn btn-primary" onClick="location.reload(1)" VALUE="Refresh">
                     <span class="glyphicon glyphicon-refresh"></span> Refresh this Page
                 </button>
             </div>
@@ -86,8 +86,8 @@
                 <H1><small>Photos & Videos</small></H1>
             </div>
             <div class="col-xs-4 text-center">
-                <button type="button" class="btn btn-primary" onclick="Button_onclick('screenshotButton')">
-                    <span class="glyphicon glyphicon-camera"></span> Take Screenshot
+                <button type="button" class="btn btn-primary" onclick="Button_onclick('takePictureButton')">
+                    <span class="glyphicon glyphicon-camera"></span> Take Picture
                 </button>
             </div>
             <div class="col-xs-4 text-center">
@@ -297,17 +297,12 @@
         var panAngle;
         var tiltAngle;
         
-        
-        
-        
-        
 		window.onload = function(){
 		
 			refreshVLC(1);
 		}
         
         
-       
 
         $('#ex1').slider({
             formatter: function(value) {
@@ -329,11 +324,18 @@
 
        function Button_onclick(msg){
 	
-				 var msgString = msg.toString();
+			var msgString = msg.toString();
 				 
-				if(msgString == "positionButton"){	$.ajax({ url: '/' + "positionButton "+ panAngle + " " + tiltAngle });}
-				else if(msgString == "screenshotButton" ){$.ajax({ url: '/' + "screenshotButton" }); refreshVLC(1);}			
+			if(msgString == "positionButton") {	
+				$.ajax({ url: '/' + "positionButton "+ panAngle + " " + tiltAngle });
 			}
+			else if(msgString == "takePictureButton" ) {
+				$.ajax({ url: '/' + "takePictureButton" });
+				setTimeout(function() { 
+					location.reload(1)
+				}, 8000);
+			}			
+		}
 	
 	var imageCounter = 0;
 	var EmptyThumbs = 16;
@@ -343,6 +345,9 @@
 		success: function(data){
 			data = JSON.parse(data);
 			for (var i in data) {
+				if (data[i].indexOf("default.jpg") !== -1) {
+					continue;
+				}
 				if (data[i].indexOf('.jpg') !== -1) {
 					$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
 					$('#slider'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
@@ -365,32 +370,6 @@
 			}
 		}
 	});
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 
 	  function checkRemote(checkbox){
@@ -421,7 +400,7 @@
 			$.ajax({ url: '/' + "stopStream" });
 		}else{
 			$.ajax({ url: '/' + "startStream" });
-			refreshVLC(3000);
+			refreshVLC(5000);
 		}	
   }) ;
 
