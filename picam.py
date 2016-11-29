@@ -279,10 +279,10 @@ def getCommand(command):
 		angle = int(((angle + 90)/180)*100)
 		print(words[1] + " " + words[2])
 		if words[1] == "pan":
-			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=230 >/dev/null 2>&1") #>/dev/null 2>&1
+			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=67 --max=230 >/dev/null 2>&1") #>/dev/null 2>&1
 			os.system("echo 3="+str(angle)+"% > /dev/servoblaster")
 		elif words[1] == "tilt":
-			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=53 --max=225 >/dev/null 2>&1")
+			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=210 >/dev/null 2>&1")
 			os.system("echo 1="+str(angle)+"% > /dev/servoblaster")
 		
 	elif command == "stopStream":
@@ -347,10 +347,10 @@ if __name__ == '__main__':
 		print("Your Ip is: ")
 		print(ip+":5000")
 		
-		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=230 >/dev/null 2>&1") #>/dev/null 2>&1
+		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=67 --max=230 >/dev/null 2>&1") #>/dev/null 2>&1
 		os.system("echo 3=50% > /dev/servoblaster")
 		time.sleep(2)
-		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=53 --max=225 >/dev/null 2>&1")
+		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=210 >/dev/null 2>&1")
 		os.system("echo 1=50% > /dev/servoblaster")
 
 		app.run(debug=True, use_reloader=False, host='0.0.0.0')
