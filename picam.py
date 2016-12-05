@@ -14,12 +14,13 @@ import netifaces as ni
 
 anglePan = 0
 angleTilt = 0
-servoStepSize = 18
+servoStepSize = 9
 
 streamingButtonStatus = ""
 pictureButtonStatus =""
 
 ShowIp = True
+ManualControlEnabled = True
 
 #################################################################
 #                                                               #
@@ -171,32 +172,82 @@ app = Flask(__name__)
 
 
 def start_stop_stream(channel):
-	getCommand("toggleStreamButton")
+	if ManualControlEnabled:
+		getCommand("toggleStreamButton")
 	
 def take_pic(channel):
-	getCommand("takePictureButton")
+	if ManualControlEnabled:
+		getCommand("takePictureButton")
 
 def move_cam(channel):
 	global anglePan
 	global angleTilt
+	moved = False
 	
+	if not ManualControlEnabled:
+			return
+
 	# print("MOVED JOYSTICK IN PIN " + str(channel))
-	if channel is 13 and anglePan <= (90-servoStepSize):
+	if GPIO.input(13) == GPIO.LOW and anglePan <= (90-servoStepSize):
 		anglePan = anglePan + servoStepSize
 		getCommand("move_cam pan " + str(anglePan))
-	elif channel is 19 and anglePan >= (-90+servoStepSize):
+		moved = True
+	if GPIO.input(19) == GPIO.LOW and anglePan >= (-90+servoStepSize):
 		anglePan = anglePan - servoStepSize
 		getCommand("move_cam pan " + str(anglePan))
-	elif channel is 5 and angleTilt <= (90-servoStepSize):
+		moved = True
+	if GPIO.input(5) == GPIO.LOW and angleTilt <= (90-servoStepSize):
 		angleTilt = angleTilt + servoStepSize
 		getCommand("move_cam tilt " + str(angleTilt))
-	elif channel is 6 and angleTilt >= (-90+servoStepSize):
+		moved = True
+	if GPIO.input(6) == GPIO.LOW and angleTilt >= (-90+servoStepSize):
 		angleTilt = angleTilt - servoStepSize
 		getCommand("move_cam tilt " + str(angleTilt))
+		moved = True
+
+	if moved:
+		timer = Timer(0.1, move_cam_manual)
+		timer.start()
 
 	#getCommand("positionButton " + str(anglePan) + " " + str(angleTilt))
 	# if GPIO.input(channel) == GPIO.HIGH:
 	# 	move_cam(channel)
+
+
+def move_cam_manual():
+	global anglePan
+	global angleTilt
+	moved = False
+	
+	if not ManualControlEnabled:
+			return
+
+	# print("MOVED JOYSTICK IN PIN " + str(channel))
+	if GPIO.input(13) == GPIO.LOW and anglePan <= (90-servoStepSize):
+		anglePan = anglePan + servoStepSize
+		getCommand("move_cam pan " + str(anglePan))
+		moved = True
+	if GPIO.input(19) == GPIO.LOW and anglePan >= (-90+servoStepSize):
+		anglePan = anglePan - servoStepSize
+		getCommand("move_cam pan " + str(anglePan))
+		moved = True
+	if GPIO.input(5) == GPIO.LOW and angleTilt <= (90-servoStepSize):
+		angleTilt = angleTilt + servoStepSize
+		getCommand("move_cam tilt " + str(angleTilt))
+		moved = True
+	if GPIO.input(6) == GPIO.LOW and angleTilt >= (-90+servoStepSize):
+		angleTilt = angleTilt - servoStepSize
+		getCommand("move_cam tilt " + str(angleTilt))
+		moved = True
+
+	if moved:
+		timer = Timer(0.1, move_cam_manual)
+		timer.start()
+
+	#getCommand("positionButton " + str(anglePan) + " " + str(angleTilt))
+	# if GPIO.input(channel) == GPIO.HIGH:
+	# 	move_cam(channel)
+
 
 def PictureTakenTimerCB():
 	print("Entered timer cb")
@@ -208,6 +259,23 @@ def PictureTakenTimerCB():
 	
 	lcd_string("Status:", LCD_LINE_1)
 	lcd_string("IDLE", LCD_LINE_2) 
+	return
+
+def CheckNetworkTimerCB():
+	global ip
+	global ManualControlEnabled
+	response = os.system("ping -c 1 " + ip)
+	if response != 0:
+		print("network is down!")
+		ManualControlEnabled = True
+		lcd_string("Network", LCD_LINE_1)
+		lcd_string("Disconnected", LCD_LINE_2)
+		timer1 = Timer(5, PictureTakenTimerCB)
+		timer1.start()
+
+	timer = Timer(5, CheckNetworkTimerCB)
+	timer.start()
+
 	return
 
 
@@ -230,15 +298,16 @@ def index():
 def videos():
 	
 	return render_template('videos.html')
-	
-	
+
+
 
 @app.route("/<command>")
 def getCommand(command):
-	
+
 	global ShowIp
+	global ManualControlEnabled
 	currentStream = False
-	
+
 	if ShowIp:
 		ShowIp = False
 		lcd_string("Status:", LCD_LINE_1)
@@ -259,7 +328,6 @@ def getCommand(command):
 			command = "stopStream"
 		else:
 			command = "startStream"
-		
 				
 	if command == "startStream":
 		if not currentStream:
@@ -272,7 +340,6 @@ def getCommand(command):
 			lcd_string("Status:", LCD_LINE_1)
 			lcd_string("Streaming", LCD_LINE_2)   
 
-			
 	elif words[0] == 'move_cam':
 		print(words[2])
 		angle = int(words[2])
@@ -284,7 +351,7 @@ def getCommand(command):
 		elif words[1] == "tilt":
 			os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=210 >/dev/null 2>&1")
 			os.system("echo 1="+str(angle)+"% > /dev/servoblaster")
-		
+
 	elif command == "stopStream":
 		print("stoping stream....")
 		streamingButtonStatus = "Stream button off stream"
@@ -316,8 +383,24 @@ def getCommand(command):
 
 		timer = Timer(5, PictureTakenTimerCB)
 		timer.start()
-			
+	
+	elif words[0] == "manualControl":
+		ManualControlEnabled = words[1]  == 'enable'
+		print("ManualControlEnabled? " + str(ManualControlEnabled))
+		if not ManualControlEnabled:
+			lcd_string("Manual Controls", LCD_LINE_1)
+			lcd_string("Disabled", LCD_LINE_2)  
+		else:
+			lcd_string("Status:", LCD_LINE_1)
+			if currentStream:
+				lcd_string("Streaming", LCD_LINE_2)   
+			else:
+				lcd_string("IDLE", LCD_LINE_2)   
+		
+
+	
 	return "success!"
+
 
 @app.route("/get_images")
 def sendImages():
@@ -342,7 +425,7 @@ def rover_controls():
 
 if __name__ == '__main__':
 	try:
-		lcd_string("IP:"+ip, LCD_LINE_1)
+		lcd_string("IP: "+ip, LCD_LINE_1)
 		lcd_string("Port :5000", LCD_LINE_2)   
 		print("Your Ip is: ")
 		print(ip+":5000")
@@ -352,6 +435,9 @@ if __name__ == '__main__':
 		time.sleep(2)
 		os.system("./ServoBlaster/PiBits/ServoBlaster/user/servod --min=60 --max=210 >/dev/null 2>&1")
 		os.system("echo 1=50% > /dev/servoblaster")
+
+		timer = Timer(5, CheckNetworkTimerCB)
+		timer.start()
 
 		app.run(debug=True, use_reloader=False, host='0.0.0.0')
 		

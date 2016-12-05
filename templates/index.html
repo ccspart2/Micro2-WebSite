@@ -56,6 +56,16 @@
             <div class="col-xs-4 text-center">
                 <button type="button" class="btn btn-primary" onclick="Button_onclick('positionButton')">Update WALL-E Position</button>
             </div>
+            
+            
+            
+            
+            <div class="col-xs-4 text-center checkbox">
+				<label><input id="ControlCheckbox" type="checkbox" value="" onclick="checkRemote(this);">Disable Manual Control</label>
+            </div>
+
+
+
 
             <div class="col-xs-4 text-center">
                 <p> </p>
@@ -68,7 +78,7 @@
             </div>
             <div class="col-xs-4 text-center">
                 <label class="checkbox-inline">
-                    <input id="toggleStream"type="checkbox" checked data-toggle="toggle"> Turn ON/OFF the Stream
+                    <input id="toggleStream" type="checkbox" checked data-toggle="toggle"> Turn ON/OFF the Stream
                 </label>
             </div>
             <div class="col-xs-4 text-center">
@@ -294,40 +304,41 @@
     <script src="static/js/Carousel.js"></script>
 
     <script>
-        var panAngle;
-        var tiltAngle;
-        
-		window.onload = function(){
+		var panAngle;
+		var tiltAngle;
 		
+		window.onload = function(){
 			refreshVLC(1);
+			document.getElementById("ControlCheckbox").checked = false;
+			document.getElementById("toggleStream").checked = false;
 		}
-        
-        
-
-        $('#ex1').slider({
-            formatter: function(value) {
-                panAngle = value.toString();
-                return 'Current value: ' + value;
-            }
-        });
-
-
-        $('#ex2').slider({
-            formatter: function(value) {
-
-                tiltAngle = value.toString();
-                return 'Current value: ' + value;
-            }
-        });
-        
-       
-
-       function Button_onclick(msg){
-	
+		
+		
+		$('#ex1').slider({
+			formatter: function(value) {
+				panAngle = value.toString();
+				return 'Current value: ' + value;
+			}
+		});
+		
+		
+		$('#ex2').slider({
+			formatter: function(value) {	
+				tiltAngle = value.toString();
+				return 'Current value: ' + value;
+			}
+		});
+		
+		
+		function Button_onclick(msg){
+			
 			var msgString = msg.toString();
-				 
+			
 			if(msgString == "positionButton") {	
-				$.ajax({ url: '/' + "positionButton "+ panAngle + " " + tiltAngle });
+				$.ajax({ url: '/' + "move_cam pan " + panAngle});
+				setTimeout(function() { 
+					$.ajax({ url: '/' + "move_cam tilt " + tiltAngle });
+				}, 1000);
 			}
 			else if(msgString == "takePictureButton" ) {
 				$.ajax({ url: '/' + "takePictureButton" });
@@ -336,73 +347,80 @@
 				}, 8000);
 			}			
 		}
-	
-	var imageCounter = 0;
-	var EmptyThumbs = 16;
-
-	$.ajax({
-		url: "/get_images",
-		success: function(data){
-			data = JSON.parse(data);
-			for (var i in data) {
-				if (data[i].indexOf("default.jpg") !== -1) {
-					continue;
+		
+		var imageCounter = 0;
+		var EmptyThumbs = 16;
+		
+		$.ajax({
+			url: "/get_images",
+			success: function(data){
+				data = JSON.parse(data);
+				for (var i in data) {
+					if (data[i].indexOf("default.jpg") !== -1) {
+						continue;
+					}
+					if (data[i].indexOf('.jpg') !== -1) {
+						$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
+						$('#slider'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
+						imageCounter++;
+						EmptyThumbs--;
+					}
+					if (imageCounter >= 16) {
+						break;
+					}
 				}
-				if (data[i].indexOf('.jpg') !== -1) {
-					$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
-					$('#slider'+imageCounter.toString()).append('<img src="static/media/'+ data[i] + '">');
-					imageCounter++;
-					EmptyThumbs--;
-				}
-				if (imageCounter >= 16) {
-					break;
-				}
-			}
-			if(EmptyThumbs > 0)
-			{
-				while(EmptyThumbs != 0 )
+				if(EmptyThumbs > 0)
 				{
-					$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
-					$('#slider'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
-					imageCounter++;
-					EmptyThumbs--;
+					while(EmptyThumbs != 0 )
+					{
+						$('#carousel-selector-'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
+						$('#slider'+imageCounter.toString()).append('<img src="static/media/default.jpg">');
+						imageCounter++;
+						EmptyThumbs--;
+					}
 				}
 			}
-		}
-	});
-	
-
-	  function checkRemote(checkbox){
-		if(checkbox.checked){	$.ajax({ url: '/' + 'checkedRemote' });}
-		else{		$.ajax({ url: '/' + 'notCheckedRemote' });}
+		});
+		
+		
+		function checkRemote(checkbox){
+			if(checkbox.checked){
+				$.ajax({ url: '/manualControl disable' });
+			}
+			else {
+				$.ajax({ url: '/manualControl enable' });
+			}
 		
 		}
-
+		
 		function refreshVLC(delay) {
 			var embed = document.getElementById("vlc");
 			var embedParent = embed.parentNode;
 			embedParent.removeChild(embed);
 			embed.setAttribute("target", "http://"+window.location.hostname+":8080/");
 			embed.src = "http://"+window.location.hostname+":8080/";
-			setTimeout(function() { embedParent.appendChild(embed);}, delay);
+			setTimeout(function() {
+				embedParent.appendChild(embed);
+			}, delay);
 		}
- $('#toggleStream').change( function () {
-	
-	
-	var status = $('#toggleStream');
-	var state = status["0"].checked; 
-	var vlc = document.getElementById("vlc");
-	var vlcAudio = vlc.audio;
-	var embedParent = vlc.parentNode;
-	
-		if(state == false){
-			refreshVLC(1);
-			$.ajax({ url: '/' + "stopStream" });
-		}else{
-			$.ajax({ url: '/' + "startStream" });
-			refreshVLC(5000);
-		}	
-  }) ;
+		
+		$('#toggleStream').change( function () {
+
+			var status = $('#toggleStream');
+			var state = status["0"].checked; 
+			var vlc = document.getElementById("vlc");
+			var vlcAudio = vlc.audio;
+			var embedParent = vlc.parentNode;
+			
+			if(state == false) {
+				refreshVLC(1);
+				$.ajax({ url: '/' + "stopStream" });
+			}
+			else {
+				$.ajax({ url: '/' + "startStream" });
+				refreshVLC(5000);
+			}	
+		}) ;
 
 
     </script>
